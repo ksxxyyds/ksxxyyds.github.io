@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>希旭/伊某数据号生成器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            text-align: center;
+            font-family: Arial, sans-serif;
+            position: relative;
+        }
+        /* 右上角VIP激活按钮 */
+        .vip-activate-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            padding: 8px 16px;
+            background-color: #ff4d4f;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .vip-activate-btn.activated {
+            background-color: #52c41a;
+        }
+        .option-section {
+            margin-bottom: 25px;
+            padding: 15px;
+            border-bottom: 1px dashed #eee;
+        }
+        .section-title {
+            margin-bottom: 15px;
+            font-size: 18px;
+            color: #333;
+        }
+        .option-label {
+            margin: 0 15px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .vip-tag {
+            display: inline-block;
+            padding: 2px 8px;
+            margin-left: 5px;
+            font-size: 12px;
+            background-color: #ff4d4f;
+            color: white;
+            border-radius: 12px;
+        }
+        /* VIP个数设置区（默认隐藏） */
+        #vipCountSetting {
+            display: none;
+            margin-top: 15px;
+        }
+        #countInput {
+            padding: 8px 12px;
+            width: 80px;
+            margin-right: 10px;
+            font-size: 14px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .count-tip {
+            font-size: 14px;
+            color: #666;
+        }
+        #generateBtn {
+            padding: 12px 30px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            margin-bottom: 30px;
+        }
+        /* 结果区样式 */
+        #result {
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+            word-break: break-all;
+            text-align: left;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .result-item {
+            margin-bottom: 12px;
+            padding: 15px;
+            background-color: white;
+            border-radius: 4px;
+            position: relative;
+        }
+        .result-item:last-child {
+            margin-bottom: 0;
+        }
+        .item-index {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 8px;
+        }
+        /* 系统标识样式 */
+        .system-tag {
+            display: inline-block;
+            padding: 2px 6px;
+            margin-right: 8px;
+            font-size: 12px;
+            border-radius: 3px;
+        }
+        .system-android {
+            background-color: #32cd32;
+            color: white;
+        }
+        .system-ios {
+            background-color: #1e90ff;
+            color: white;
+        }
+        /* 单独复制按钮 */
+        .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 4px 8px;
+            font-size: 12px;
+            background-color: #4285f4;
+            color: white;
+            border: none;
+            border-radius: 2px;
+            cursor: pointer;
+        }
+        .copy-btn:hover {
+            background-color: #3367d6;
+        }
+        /* 弹窗样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 6px;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+        }
+        .modal-title {
+            font-size: 18px;
+            color: #ff4d4f;
+            margin-bottom: 15px;
+        }
+        .activate-code {
+            padding: 10px;
+            margin: 15px 0;
+            background-color: #f5f5f5;
+            border-radius: 4px;
+            font-family: monospace;
+            color: #333;
+        }
+        .get-code-btn {
+            display: inline-block;
+            margin: 10px 0;
+            padding: 8px 16px;
+            background-color: #4285f4;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .get-code-btn:hover {
+            background-color: #3367d6;
+        }
+        .modal-input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .modal-btn {
+            padding: 8px 20px;
+            margin: 0 8px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .confirm-btn {
+            background-color: #28a745;
+            color: white;
+        }
+        .cancel-btn {
+            background-color: #eee;
+            color: #333;
+        }
+        .copy-success {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 20px;
+            background-color: #52c41a;
+            color: white;
+            border-radius: 4px;
+            display: none;
+            z-index: 1001;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 右上角VIP激活按钮 -->
+        <button class="vip-activate-btn" id="vipActivateBtn">激活VIP</button>
+        
+        <h2>希旭/伊某数据号生成器</h2>
+        
+        <!-- 新增：第一步选择设备系统 -->
+        <div class="option-section">
+            <div class="section-title">1. 选择设备系统</div>
+            <label class="option-label">
+                <input type="radio" name="deviceSystem" value="安卓" checked> 安卓
+            </label>
+            <label class="option-label">
+                <input type="radio" name="deviceSystem" value="iOS"> iOS
+            </label>
+        </div>
+
+        <!-- 第二步：选择版本类型（免费/VIP） -->
+        <div class="option-section">
+            <div class="section-title">2. 选择生成版本</div>
+            <label class="option-label">
+                <input type="radio" name="versionType" value="free" checked> 免费版
+            </label>
+            <label class="option-label">
+                <input type="radio" name="versionType" value="vip"> VIP版<span class="vip-tag">VIP</span>
+            </label>
+            <!-- VIP个数设置（默认隐藏） -->
+            <div id="vipCountSetting">
+                <input type="number" id="countInput" min="1" max="100" placeholder="输入个数" value="5">
+                <span class="count-tip">支持1-100个，默认5个</span>
+            </div>
+        </div>
+
+        <!-- 第三步：选择数据格式（普通/OP） -->
+        <div class="option-section">
+            <div class="section-title">3. 选择数据格式</div>
+            <label class="option-label">
+                <input type="radio" name="dataFormat" value="normal" checked> 普通数据
+            </label>
+            <label class="option-label">
+                <input type="radio" name="dataFormat" value="op"> OP数据
+            </label>
+        </div>
+
+        <!-- 第四步：生成按钮 -->
+        <button id="generateBtn">生成数据</button>
+
+        <!-- 结果显示区 -->
+        <div id="result">点击“生成数据”按钮，结果将显示在这里</div>
+    </div>
+
+    <!-- VIP激活弹窗 -->
+    <div class="modal" id="vipModal">
+        <div class="modal-content">
+            <div class="modal-title">激活VIP权限</div>
+            <p>请输入VIP激活码（或点击下方按钮领取）</p>
+            <!-- 领取激活码按钮 -->
+            <a href="https://qun.qq.com/universal-share/share?ac=1&authKey=qzXyKVco9l6TXsaImeVFtwdliUZb53UG9Z7EKqjRGLxJot5xWhEFKUwd4DWkA7YV&busi_data=eyJncm91cENvZGUiOiI1NjMzODk5ODUiLCJ0b2tlbiI6IlZZZVlhcVhGcVYwNjEwVTB5WmtBbjFJUkUwSFdheTk5S2c2NDhFRWhpODY5aVJ0eHMwSy9HUlJ3WGhzWTV6a2siLCJ1aW4iOiIxOTE1NTg5Njc0In0%3D&data=obj3w4LEYwXuTmvko3whws7yE_qd3gdAu1CTl6PWf8gWSCM9ecSx0rGj5d-o_PnoycugNgl1fw2_aBhMkDx2gg&svctype=4&tempid=h5_group_info" 
+               class="get-code-btn" target="_blank">领取激活码（加入QQ群）</a>
+            <p>激活码领取Q群：<span class="activate-code">563389985</span></p>
+            <input type="text" class="modal-input" id="inputActivateCode" placeholder="输入激活码">
+            <button class="modal-btn confirm-btn" id="confirmActivate">确认激活</button>
+            <button class="modal-btn cancel-btn" id="cancelActivate">取消</button>
+        </div>
+    </div>
+
+    <!-- 复制成功提示 -->
+    <div class="copy-success" id="copySuccess">复制成功！</div>
+
+    <script>
+        // 全局状态：VIP是否激活
+        let isVipActivated = false;
+        const DEFAULT_ACTIVATE_CODE = 'ksxxnb520666';
+
+        // DOM元素获取
+        const vipActivateBtn = document.getElementById('vipActivateBtn');
+        const vipModal = document.getElementById('vipModal');
+        const inputActivateCode = document.getElementById('inputActivateCode');
+        const confirmActivate = document.getElementById('confirmActivate');
+        const cancelActivate = document.getElementById('cancelActivate');
+        const copySuccess = document.getElementById('copySuccess');
+        const vipRadio = document.querySelector('input[name="versionType"][value="vip"]');
+        const freeRadio = document.querySelector('input[name="versionType"][value="free"]');
+        const vipCountSetting = document.getElementById('vipCountSetting');
+        const generateBtn = document.getElementById('generateBtn');
+        const resultContainer = document.getElementById('result');
+        const countInput = document.getElementById('countInput');
+        // 新增：系统选择DOM
+        const systemRadios = document.querySelectorAll('input[name="deviceSystem"]');
+
+        // 生成32位随机十六进制access_token
+        function generateRandomToken() {
+            const chars = '0123456789ABCDEF';
+            let token = '';
+            for (let i = 0; i < 32; i++) {
+                token += chars[Math.floor(Math.random() * 16)];
+            }
+            return token;
+        }
+
+        // 新增：根据系统和格式生成单条数据（带系统标识）
+        function generateSingleData(system, format) {
+            const token = generateRandomToken();
+            // 系统专属标识（安卓绿色、iOS蓝色）
+            const systemTag = `<span class="system-tag system-${system === '安卓' ? 'android' : 'ios'}">${system}</span>`;
+            
+            if (format === 'normal') {
+                return `${systemTag}auth://tauth.qq.com/?#access_token=${token}&expires_in=5184000&openid=F31F0A7E94EEC60F6F1A8FE57D028AC0&pay_token=69E9EAD3C70989D6134F0A15B7831AC1&ret=0&pf=desktop_m_qq-10000144-android-2002-&pfkey=c7df4ea3a6492a7fd379e1956158595b&auth_time=1761571147&page_type=0`;
+            } else {
+                return `${systemTag}access_token=${token}`;
+            }
+        }
+
+        // 单独复制功能（兼容带HTML标签的内容）
+        function copyToClipboard(text, btn) {
+            // 提取纯文本内容（去除HTML标签）
+            const pureText = text.replace(/<[^>]*>/g, '');
+            navigator.clipboard.writeText(pureText).then(() => {
+                copySuccess.style.display = 'block';
+                setTimeout(() => copySuccess.style.display = 'none', 1500);
+                const originalText = btn.textContent;
+                btn.textContent = '已复制';
+                setTimeout(() => btn.textContent = originalText, 1500);
+            });
+        }
+
+        // 控制VIP个数设置区显示/隐藏（需判断激活状态）
+        function updateVipCountSetting() {
+            if (isVipActivated && vipRadio.checked) {
+                vipCountSetting.style.display = 'inline-block';
+            } else {
+                vipCountSetting.style.display = 'none';
+                if (!isVipActivated && vipRadio.checked) {
+                    freeRadio.checked = true;
+                }
+            }
+        }
+
+        // VIP激活弹窗控制
+        vipActivateBtn.addEventListener('click', () => {
+            vipModal.style.display = 'flex';
+            inputActivateCode.value = '';
+        });
+        cancelActivate.addEventListener('click', () => {
+            vipModal.style.display = 'none';
+        });
+        vipModal.addEventListener('click', (e) => {
+            if (e.target === vipModal) vipModal.style.display = 'none';
+        });
+
+        // 确认激活逻辑
+        confirmActivate.addEventListener('click', () => {
+            const inputCode = inputActivateCode.value.trim();
+            if (inputCode === DEFAULT_ACTIVATE_CODE) {
+                isVipActivated = true;
+                vipModal.style.display = 'none';
+                vipActivateBtn.textContent = 'VIP已激活';
+                vipActivateBtn.classList.add('activated');
+                updateVipCountSetting();
+                alert('VIP激活成功！现在可以使用自定义个数生成功能');
+            } else {
+                alert('激活码错误，请重新输入！');
+            }
+        });
+
+        // 监听版本选择变化
+        vipRadio.addEventListener('change', () => {
+            if (!isVipActivated) {
+                vipModal.style.display = 'flex';
+                setTimeout(() => freeRadio.checked = true, 100);
+            } else {
+                updateVipCountSetting();
+            }
+        });
+        freeRadio.addEventListener('change', updateVipCountSetting);
+
+        // 核心生成逻辑（新增系统选择逻辑）
+        generateBtn.addEventListener('click', () => {
+            const version = document.querySelector('input[name="versionType"]:checked').value;
+            const format = document.querySelector('input[name="dataFormat"]:checked').value;
+            // 新增：获取选中的系统
+            const selectedSystem = document.querySelector('input[name="deviceSystem"]:checked').value;
+            let count = 1;
+
+            // 确定生成个数（VIP逻辑不变）
+            if (version === 'vip' && isVipActivated) {
+                count = parseInt(countInput.value);
+                count = count < 1 ? 1 : (count > 100 ? 100 : count);
+                countInput.value = count;
+            }
+
+            // 生成并渲染结果（带系统标识）
+            resultContainer.innerHTML = '';
+            for (let i = 0; i < count; i++) {
+                // 传入系统参数生成数据
+                const data = generateSingleData(selectedSystem, format);
+                const item = document.createElement('div');
+                item.className = 'result-item';
+                item.innerHTML = `
+                    <div class="item-index">第${i + 1}个</div>
+                    <div class="item-content">${data}</div>
+                    <button class="copy-btn">复制</button>
+                `;
+                resultContainer.appendChild(item);
+                // 绑定复制按钮事件（传入带标签的完整内容）
+                const copyBtn = item.querySelector('.copy-btn');
+                copyBtn.addEventListener('click', () => copyToClipboard(data, copyBtn));
+            }
+        });
+
+        // 初始化
+        updateVipCountSetting();
+    </script>
+</body>
+</html>
